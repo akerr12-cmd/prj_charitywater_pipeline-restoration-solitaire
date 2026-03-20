@@ -11,7 +11,7 @@ import { FULL_DECK } from './deck.js';
    1. GAME CONSTANTS
 ------------------------------------------------------------ */
 
-const NUM_TABLEAU_COLUMNS = 6;
+const NUM_TABLEAU_COLUMNS = 8;
 const NUM_TANKS = 6; // free cells
 const NUM_FOUNDATIONS = 4; // Tools, Solutions, Challenges, Impact
 const DEFAULT_STACK_OFFSET = 26;

@@ -41,6 +41,71 @@ html, body {
 .screen.active { display: flex; flex-direction: column; }
 
 /* =============================================
+   PORTRAIT WARNING OVERLAY (Mobile)
+   ============================================= */
+#portrait-warning {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0A2E3D 0%, #0d4a6b 100%);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#portrait-warning.show {
+  display: flex;
+  opacity: 1;
+}
+
+.portrait-warning-content {
+  text-align: center;
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.portrait-icon {
+  font-size: 4rem;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.portrait-warning-content h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--yellow);
+}
+
+.portrait-warning-content p {
+  font-size: 1.1rem;
+  color: var(--light-blue);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.rotation-arrow {
+  font-size: 3rem;
+  animation: rotateArrow 1.5s ease-in-out infinite;
+  display: block;
+}
+
+@keyframes rotateArrow {
+  0%   { transform: rotateZ(0deg) scaleY(1); opacity: 0.6; }
+  50%  { transform: rotateZ(90deg) scaleY(1); opacity: 1; }
+  100% { transform: rotateZ(90deg) scaleY(1); opacity: 0.6; }
+}
+
+/* =============================================
    TITLE SCREEN
    ============================================= */
 #title-screen {
@@ -1221,7 +1286,7 @@ h1 span { color: var(--yellow); }
 }
 
 .tableau {
-  grid-template-columns: repeat(6, var(--play-card-w));
+  grid-template-columns: repeat(8, var(--play-card-w));
   justify-content: center;
   gap: 10px;
   padding: 12px 10px;
@@ -1258,7 +1323,7 @@ h1 span { color: var(--yellow); }
   }
 
   .tableau {
-    grid-template-columns: repeat(6, var(--play-card-w));
+    grid-template-columns: repeat(8, var(--play-card-w));
     justify-content: center;
     gap: 12px;
     padding: 16px;
@@ -1279,7 +1344,7 @@ h1 span { color: var(--yellow); }
   }
 
   .tableau {
-    grid-template-columns: repeat(6, var(--play-card-w));
+    grid-template-columns: repeat(8, var(--play-card-w));
     justify-content: center;
     gap: 14px;
     padding: 20px;
@@ -1311,7 +1376,7 @@ h1 span { color: var(--yellow); }
   }
 
   .tableau {
-    grid-template-columns: repeat(6, var(--play-card-w));
+    grid-template-columns: repeat(8, var(--play-card-w));
     justify-content: center;
     gap: 8px;
     padding: 10px 8px;

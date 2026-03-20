@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
     <meta name="description"
         content="Wellspring Match — a fast, strategic card-matching game where players race to restore clean water access to a community. By Charity: Water." />
     <title>Wellspring Match | Charity: Water</title>
@@ -401,8 +401,62 @@
         </div>
     </section>
 
+    <!-- Portrait Orientation Warning (Mobile) -->
+    <div id="portrait-warning" class="portrait-warning" role="alert" aria-live="assertive" aria-hidden="true">
+        <div class="portrait-warning-content">
+            <div class="portrait-icon" aria-hidden="true">📱</div>
+            <h2>Rotate to Landscape</h2>
+            <p>This game is best played in landscape mode for the best experience.</p>
+            <div class="rotation-arrow" aria-hidden="true">➜</div>
+        </div>
+    </div>
+
     <script src="JS/game.js"></script>
     <script type="module" src="JS/solitaire.js"></script>
+    
+    <script>
+        // ===========================================================
+        // LANDSCAPE ORIENTATION LOCK (Mobile)
+        // ===========================================================
+        
+        function initOrientationLock() {
+            const isMobile = window.innerWidth <= 900;
+            const portraitWarning = document.getElementById('portrait-warning');
+            
+            function handleOrientationChange() {
+                const isPortrait = window.innerHeight > window.innerWidth;
+                
+                if (isMobile && isPortrait) {
+                    portraitWarning.setAttribute('aria-hidden', 'false');
+                    portraitWarning.classList.add('show');
+                } else {
+                    portraitWarning.setAttribute('aria-hidden', 'true');
+                    portraitWarning.classList.remove('show');
+                }
+            }
+            
+            // Try to lock orientation using Screen Orientation API
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape-primary').catch(() => {
+                    // Silently fail if lock is not supported
+                });
+            }
+            
+            // Listen for orientation changes
+            window.addEventListener('orientationchange', handleOrientationChange);
+            window.addEventListener('resize', handleOrientationChange);
+            
+            // Initial check
+            handleOrientationChange();
+        }
+        
+        // Start orientation lock when page is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initOrientationLock);
+        } else {
+            initOrientationLock();
+        }
+    </script>
 
 </body>
 
