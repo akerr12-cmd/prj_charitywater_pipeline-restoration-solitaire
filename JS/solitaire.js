@@ -158,22 +158,92 @@ function renderFoundations() {
 function buildCardEl(card) {
   const el = document.createElement('div');
   el.className = 'card';
+  el.dataset.cardId = card.id;
+
+  // Face-down state
   if (card.faceDown) el.classList.add('facedown');
+
+  // Locked state
   if (card.locked) el.classList.add('locked');
+
+  // ARIA label
+  el.setAttribute(
+    'aria-label',
+    card.faceDown
+      ? 'Face-down card'
+      : `${card.name}, ${card.type} card`
+  );
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+
+  /* ------------------------------------------------------------
+     CARD FRONT (Option B Layout)
+     ------------------------------------------------------------ */
+  const twistIcon = card.twist ? '<span class="card-twist-icon">⚠️</span>' : '';
 
   el.innerHTML = `
     <div class="card-inner">
-      <div class="card-face card-back-face"></div>
+
+      <!-- BACK FACE -->
+      <div class="card-face card-back-face">
+        <svg class="card-back-pattern" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(79,187,239,1)" stroke-width="1.5"/>
+          <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(79,187,239,1)" stroke-width="1"/>
+          <circle cx="50" cy="50" r="25" fill="none" stroke="rgba(79,187,239,1)" stroke-width="0.8"/>
+          <path d="M50 10 Q60 30 50 50 Q40 30 50 10Z" fill="rgba(79,187,239,0.5)"/>
+        </svg>
+      </div>
+
+      <!-- FRONT FACE -->
       <div class="card-face card-front-face type-${card.type}">
-        <span class="card-type-label">${card.type}</span>
-        <span class="card-emoji">${card.emoji}</span>
-        <span class="card-name">${card.name}</span>
+
+        <!-- Top bar -->
+        <div class="card-top-bar">
+          <span class="card-type-badge">${card.type}</span>
+          ${twistIcon}
+        </div>
+
+        <!-- Center emoji -->
+        <div class="card-emoji">${card.emoji}</div>
+
+        <!-- Name -->
+        <div class="card-name">${card.name}</div>
+
+        <!-- Pair ID -->
+        <div class="card-id">#${card.pairId}</div>
+
       </div>
     </div>
   `;
 
-  el.addEventListener('mousedown', e => startDrag(card, el, e));
-  el.addEventListener('touchstart', e => startDrag(card, el, e));
+  /* ------------------------------------------------------------
+     INTERACTION HANDLERS
+     ------------------------------------------------------------ */
+
+  // Click / keyboard select
+  el.addEventListener('click', e => {
+    if (card.faceDown || card.locked) return;
+    startDrag(card, el, e); // tap-to-drag behavior
+  });
+
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (card.faceDown || card.locked) return;
+      startDrag(card, el, e);
+    }
+  });
+
+  // Mouse/touch drag
+  el.addEventListener('mousedown', e => {
+    if (card.faceDown || card.locked) return;
+    startDrag(card, el, e);
+  });
+
+  el.addEventListener('touchstart', e => {
+    if (card.faceDown || card.locked) return;
+    startDrag(card, el, e);
+  });
 
   return el;
 }
