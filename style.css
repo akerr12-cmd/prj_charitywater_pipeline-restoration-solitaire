@@ -1519,7 +1519,6 @@ h1 span { color: var(--yellow); }
     line-height: 1.1;
     margin-top: 2px;
     display: -webkit-box;
-    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -1647,7 +1646,6 @@ h1 span { color: var(--yellow); }
   line-height: 1.08;
   margin-top: 2px;
   display: -webkit-box;
-  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -1661,7 +1659,6 @@ h1 span { color: var(--yellow); }
   margin-top: 2px;
   padding: 2px 3px;
   display: -webkit-box;
-  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   max-height: 2.6em;
