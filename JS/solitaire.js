@@ -341,6 +341,7 @@ function buildCardEl(card) {
   const twistIcon = card.twist ? '<span class="card-twist-icon">⚠️</span>' : '';
   const actionHint = getCardActionHint(card);
   const typeLabel = getCardTypeLabel(card);
+  const pointValue = getCardPointValue(card);
 
   el.innerHTML = `
     <div class="card-inner">
@@ -361,7 +362,6 @@ function buildCardEl(card) {
         <!-- Top bar -->
         <div class="card-top-bar">
           <span class="card-type-badge">${typeLabel}</span>
-          ${twistIcon}
         </div>
 
         <!-- Center emoji -->
@@ -373,111 +373,63 @@ function buildCardEl(card) {
         <!-- Action hint -->
         <div class="card-hint">${actionHint}</div>
 
-        <!-- Pair ID -->
+        <!-- Point value -->
+        <div class="card-point-value">${pointValue}</div>
+
+        <!-- Pair ID (hidden) -->
         <div class="card-id">#${card.pairId}</div>
+
+        <!-- Twist icon (bottom-right overlay) -->
+        ${twistIcon}
 
       </div>
     </div>
   `;
 
   /* ------------------------------------------------------------
-     INTERACTION HANDLERS
+     INTERACTION HANDLERS (CLICK-TO-SELECT, CLICK-TO-PLACE)
      ------------------------------------------------------------ */
 
-  // Click / keyboard select
+  // Click to select/deselect or place
   el.addEventListener('click', e => {
     if (card.faceDown || card.locked) return;
-    startDrag(card, el, e); // tap-to-drag behavior
+    e.stopPropagation();
+    
+    // If this card is already selected, deselect it
+    if (S.selectedCard === card) {
+      clearSelection();
+      return;
+    }
+    
+    // If another card is selected, deselect it first
+    if (S.selectedCard !== null && S.selectedCard !== card) {
+      clearSelection();
+    }
+    
+    // Select this card
+    toggleCardSelection(card, el);
   });
 
   el.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (card.faceDown || card.locked) return;
-      startDrag(card, el, e);
+      
+      if (S.selectedCard === card) {
+        clearSelection();
+      } else {
+        if (S.selectedCard !== null) clearSelection();
+        toggleCardSelection(card, el);
+      }
     }
-  });
-
-  // Mouse/touch drag
-  el.addEventListener('mousedown', e => {
-    if (card.faceDown || card.locked) return;
-    startDrag(card, el, e);
-  });
-
-  el.addEventListener('touchstart', e => {
-    if (card.faceDown || card.locked) return;
-    startDrag(card, el, e);
   });
 
   return el;
 }
 
 /* ------------------------------------------------------------
-   7. DRAG / TAP MOVEMENT SYSTEM
+   7. CLICK-TO-SELECT, CLICK-TO-PLACE MOVEMENT SYSTEM
 ------------------------------------------------------------ */
-
-function startDrag(card, el, event) {
-  if (card.faceDown || card.locked) return;
-
-  S.dragOrigin = findCardOrigin(card);
-  S.isDragging = true;
-  S.dragEl = el;
-  S.selectedCard = card;
-
-  // Lock card size before moving to fixed positioning so it does not expand to viewport width.
-  const rect = el.getBoundingClientRect();
-  el.style.width = `${rect.width}px`;
-  el.style.height = `${rect.height}px`;
-  el.style.position = 'fixed';
-  el.style.left = `${rect.left}px`;
-  el.style.top = `${rect.top}px`;
-  el.style.zIndex = 9999;
-  el.style.pointerEvents = 'none';
-
-  el.classList.add('dragging');
-  highlightDropTargets(card);
-
-  document.addEventListener('mousemove', onDragMove);
-  document.addEventListener('mouseup', onDragEnd);
-  document.addEventListener('touchmove', onDragMove);
-  document.addEventListener('touchend', onDragEnd);
-}
-
-function onDragMove(event) {
-  if (!S.isDragging || !S.dragEl) return;
-
-  const x = event.touches ? event.touches[0].clientX : event.clientX;
-  const y = event.touches ? event.touches[0].clientY : event.clientY;
-
-  S.dragEl.style.left = `${x - 40}px`;
-  S.dragEl.style.top = `${y - 60}px`;
-}
-
-function onDragEnd(event) {
-  if (!S.isDragging) return;
-
-  const dropTarget = document.elementFromPoint(
-    event.changedTouches ? event.changedTouches[0].clientX : event.clientX,
-    event.changedTouches ? event.changedTouches[0].clientY : event.clientY
-  );
-
-  clearDropTargets();
-  attemptMoveToTarget(dropTarget);
-
-  // Reset drag state
-  S.dragEl.classList.remove('dragging');
-  S.dragEl.style.pointerEvents = '';
-  S.dragEl.style = '';
-  S.isDragging = false;
-  S.dragEl = null;
-  S.dragOrigin = null;
-  S.selectedCard = null;
-
-  document.removeEventListener('mousemove', onDragMove);
-  document.removeEventListener('mouseup', onDragEnd);
-  document.removeEventListener('touchmove', onDragMove);
-  document.removeEventListener('touchend', onDragEnd);
-}
 
 function findCardOrigin(card) {
   // Tableau
@@ -498,6 +450,27 @@ function findCardOrigin(card) {
   }
 
   return null;
+}
+
+function toggleCardSelection(card, el) {
+  S.selectedCard = card;
+  S.selectedFrom = findCardOrigin(card);
+  
+  el.classList.add('selected');
+  highlightDropTargets(card);
+}
+
+function clearSelection() {
+  if (S.selectedCard) {
+    const selectedEl = document.querySelector(`[data-card-id="${S.selectedCard.id}"]`);
+    if (selectedEl) {
+      selectedEl.classList.remove('selected');
+    }
+  }
+  
+  clearDropTargets();
+  S.selectedCard = null;
+  S.selectedFrom = null;
 }
 
 function highlightDropTargets(card) {
@@ -525,31 +498,67 @@ function clearDropTargets() {
   );
 }
 
-/* ------------------------------------------------------------
-   8. MOVE VALIDATION
------------------------------------------------------------- */
+// Global handler to clear selection when clicking elsewhere
+document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('click', (e) => {
+    // Only clear if clicking on the board area or empty space, not on interactive elements
+    if (!e.target.closest('.card') && 
+        !e.target.closest('.booster') &&
+        !e.target.closest('.btn') &&
+        S.selectedCard !== null) {
+      // Check if clicked on a drop target to attempt move
+      if (e.target.closest('.drop-target')) {
+        handleDropTargetClick(e.target);
+      } else {
+        clearSelection();
+      }
+    }
+  });
+});
 
-function attemptMoveToTarget(target) {
-  if (!target) return;
+function handleDropTargetClick(target) {
+  if (!S.selectedCard) return;
 
   // Tank drop
   if (target.closest('.tank-slot')) {
     const tankIndex = Number(target.closest('.tank-slot').dataset.tank);
-    return moveToTank(tankIndex);
+    moveToTank(tankIndex);
+    clearSelection();
+    return;
   }
 
   // Foundation drop
   if (target.closest('.foundation-slot')) {
     const fIndex = Number(target.closest('.foundation-slot').dataset.foundation);
-    return moveToFoundation(fIndex);
+    moveToFoundation(fIndex);
+    clearSelection();
+    return;
   }
 
   // Tableau drop
   if (target.closest('.tableau-column')) {
     const colIndex = Number(target.closest('.tableau-column').dataset.col);
-    return moveToTableau(colIndex);
+    moveToTableau(colIndex);
+    clearSelection();
+    return;
   }
 }
+
+function startDrag(card, el, event) {
+  // Deprecated: drag system replaced with click-to-select
+}
+
+function onDragMove(event) {
+  // Deprecated: drag system replaced with click-to-select
+}
+
+function onDragEnd(event) {
+  // Deprecated: drag system replaced with click-to-select
+}
+
+/* ------------------------------------------------------------
+   8. MOVE VALIDATION
+------------------------------------------------------------ */
 
 /* ------------------------------------------------------------
    9. MOVE HANDLERS
@@ -883,6 +892,19 @@ function getCardActionHint(card) {
   }
 
   return 'Use strategically';
+}
+
+function getCardPointValue(card) {
+  if (card.type === 'tool' || card.type === 'solution') {
+    return BALANCE.toolSolutionScore;
+  }
+  if (card.type === 'impact') {
+    return BALANCE.impactScore;
+  }
+  if (card.type === 'challenge') {
+    return 0; // Challenges don't award points directly
+  }
+  return 0;
 }
 
 function getMatchType(a, b) {
