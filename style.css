@@ -815,6 +815,7 @@ h1 span { color: var(--yellow); }
 .toast.type-penalty { border-color: var(--challenge-color); }
 .toast.type-impact  { border-color: var(--impact-color); }
 .toast.type-twist   { border-color: #ff9800; }
+.toast.type-invalid { border-color: #ff6b6b; }
 
 /* Heatwave overlay */
 .heatwave-overlay {
@@ -1183,6 +1184,14 @@ h1 span { color: var(--yellow); }
   animation: selectedPulse 0.6s ease-in-out infinite;
 }
 
+.tableau-column.source-selected,
+.tank-slot.source-selected,
+.foundation-slot.source-selected {
+  outline: 3px solid rgba(79, 187, 239, 0.95);
+  outline-offset: 4px;
+  background: rgba(79, 187, 239, 0.12);
+}
+
 @keyframes selectedPulse {
   0%, 100% { filter: brightness(1.15); }
   50% { filter: brightness(1); }
@@ -1196,6 +1205,45 @@ h1 span { color: var(--yellow); }
 @keyframes cardMove {
   0% { transform: scale(0.95); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+.card.invalid-shake {
+  animation: invalidShake 0.24s ease;
+}
+
+.tableau-column.invalid-target-shake,
+.tank-slot.invalid-target-shake,
+.foundation-slot.invalid-target-shake {
+  animation: invalidTargetShake 0.24s ease;
+}
+
+@keyframes invalidShake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes invalidTargetShake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+
+.tank-slot.slot-snap,
+.foundation-slot.slot-snap {
+  animation: slotSnap 0.2s ease-out;
+}
+
+@keyframes slotSnap {
+  0% { transform: scale(0.96); }
+  70% { transform: scale(1.03); }
+  100% { transform: scale(1); }
 }
 
 /* When dragging */

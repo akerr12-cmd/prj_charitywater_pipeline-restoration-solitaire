@@ -393,9 +393,10 @@ function buildCardEl(card) {
       clearSelection();
       return;
     }
-    
-    // If another card is selected, deselect it first
+
+    // If another card is selected, first try to place it onto this card's pile.
     if (S.selectedCard !== null && S.selectedCard !== card) {
+      if (attemptSelectedMoveToTarget(el, true)) return;
       clearSelection();
     }
     
@@ -411,7 +412,10 @@ function buildCardEl(card) {
       if (S.selectedCard === card) {
         clearSelection();
       } else {
-        if (S.selectedCard !== null) clearSelection();
+        if (S.selectedCard !== null) {
+          if (attemptSelectedMoveToTarget(el, true)) return;
+          clearSelection();
+        }
         toggleCardSelection(card, el);
       }
     }
@@ -450,6 +454,7 @@ function toggleCardSelection(card, el) {
   S.selectedFrom = findCardOrigin(card);
   
   el.classList.add('selected');
+  applySourceSelectionHighlight();
   highlightDropTargets(card);
 }
 
@@ -462,6 +467,7 @@ function clearSelection() {
   }
   
   clearDropTargets();
+  clearSourceSelectionHighlight();
   S.selectedCard = null;
   S.selectedFrom = null;
 }
@@ -491,50 +497,135 @@ function clearDropTargets() {
   );
 }
 
+function applySourceSelectionHighlight() {
+  clearSourceSelectionHighlight();
+  if (!S.selectedFrom) return;
+
+  let sourceEl = null;
+  if (S.selectedFrom.type === 'tableau') {
+    sourceEl = document.querySelector(`.tableau-column[data-col="${S.selectedFrom.col}"]`);
+  }
+  if (S.selectedFrom.type === 'tank') {
+    sourceEl = document.querySelector(`.tank-slot[data-tank="${S.selectedFrom.tank}"]`);
+  }
+  if (S.selectedFrom.type === 'foundation') {
+    sourceEl = document.querySelector(`.foundation-slot[data-foundation="${S.selectedFrom.foundation}"]`);
+  }
+
+  if (sourceEl) {
+    sourceEl.classList.add('source-selected');
+  }
+}
+
+function clearSourceSelectionHighlight() {
+  document.querySelectorAll('.source-selected').forEach(el => {
+    el.classList.remove('source-selected');
+  });
+}
+
+function showInvalidMoveFeedback(target) {
+  const selectedEl = S.selectedCard
+    ? document.querySelector(`[data-card-id="${S.selectedCard.id}"]`)
+    : null;
+
+  if (selectedEl) {
+    selectedEl.classList.remove('invalid-shake');
+    setTimeout(() => selectedEl.classList.add('invalid-shake'), 0);
+    setTimeout(() => selectedEl.classList.remove('invalid-shake'), 260);
+  }
+
+  const targetPile = target?.closest('.tableau-column, .tank-slot, .foundation-slot');
+  if (targetPile) {
+    targetPile.classList.remove('invalid-target-shake');
+    setTimeout(() => targetPile.classList.add('invalid-target-shake'), 0);
+    setTimeout(() => targetPile.classList.remove('invalid-target-shake'), 260);
+  }
+
+  showSolitaireToast('Invalid move for selected card.', 'invalid');
+}
+
+function triggerSlotSnap(slotType, index) {
+  const selector = slotType === 'tank'
+    ? `.tank-slot[data-tank="${index}"]`
+    : `.foundation-slot[data-foundation="${index}"]`;
+
+  const slotEl = document.querySelector(selector);
+  if (!slotEl) return;
+
+  slotEl.classList.remove('slot-snap');
+  setTimeout(() => {
+    slotEl.classList.add('slot-snap');
+    setTimeout(() => slotEl.classList.remove('slot-snap'), 220);
+  }, 0);
+}
+
+function attemptSelectedMoveToTarget(target, feedbackOnInvalid = false) {
+  if (!S.selectedCard || !target) return false;
+
+  const tankEl = target.closest('.tank-slot');
+  if (tankEl) {
+    const tankIndex = Number(tankEl.dataset.tank);
+    if (S.tanks[tankIndex] !== null) {
+      if (feedbackOnInvalid) showInvalidMoveFeedback(target);
+      return false;
+    }
+    moveToTank(tankIndex);
+    triggerSlotSnap('tank', tankIndex);
+    clearSelection();
+    return true;
+  }
+
+  const foundationEl = target.closest('.foundation-slot');
+  if (foundationEl) {
+    const fIndex = Number(foundationEl.dataset.foundation);
+    if (!isValidFoundationMove(S.selectedCard, S.foundations[fIndex], fIndex)) {
+      if (feedbackOnInvalid) showInvalidMoveFeedback(target);
+      return false;
+    }
+    moveToFoundation(fIndex);
+    triggerSlotSnap('foundation', fIndex);
+    clearSelection();
+    return true;
+  }
+
+  const tableauEl = target.closest('.tableau-column');
+  if (tableauEl) {
+    const colIndex = Number(tableauEl.dataset.col);
+    if (!isValidTableauMove(S.selectedCard, S.tableau[colIndex])) {
+      if (feedbackOnInvalid) showInvalidMoveFeedback(target);
+      return false;
+    }
+    moveToTableau(colIndex);
+    clearSelection();
+    return true;
+  }
+
+  return false;
+}
+
 // Global handler to clear selection when clicking elsewhere
 document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', (e) => {
-    // Only clear if clicking on the board area or empty space, not on interactive elements
-    if (!e.target.closest('.card') && 
-        !e.target.closest('.booster') &&
-        !e.target.closest('.btn') &&
-        S.selectedCard !== null) {
-      // Check if clicked on a drop target to attempt move
-      if (e.target.closest('.drop-target')) {
-        handleDropTargetClick(e.target);
-      } else {
-        clearSelection();
-      }
+    if (S.selectedCard === null) return;
+    if (e.target.closest('.booster') || e.target.closest('.btn')) return;
+
+    const isBoardDropIntent = Boolean(
+      e.target.closest('.card') ||
+      e.target.closest('.tank-slot') ||
+      e.target.closest('.foundation-slot') ||
+      e.target.closest('.tableau-column')
+    );
+
+    if (attemptSelectedMoveToTarget(e.target, isBoardDropIntent)) return;
+
+    if (!e.target.closest('.card')) {
+      clearSelection();
     }
   });
 });
 
 function handleDropTargetClick(target) {
-  if (!S.selectedCard) return;
-
-  // Tank drop
-  if (target.closest('.tank-slot')) {
-    const tankIndex = Number(target.closest('.tank-slot').dataset.tank);
-    moveToTank(tankIndex);
-    clearSelection();
-    return;
-  }
-
-  // Foundation drop
-  if (target.closest('.foundation-slot')) {
-    const fIndex = Number(target.closest('.foundation-slot').dataset.foundation);
-    moveToFoundation(fIndex);
-    clearSelection();
-    return;
-  }
-
-  // Tableau drop
-  if (target.closest('.tableau-column')) {
-    const colIndex = Number(target.closest('.tableau-column').dataset.col);
-    moveToTableau(colIndex);
-    clearSelection();
-    return;
-  }
+  attemptSelectedMoveToTarget(target);
 }
 
 /* ------------------------------------------------------------
@@ -716,12 +807,12 @@ function lockRandomPlayableCard(durationSecs) {
   return lockedCard;
 }
 
-function showSolitaireToast(message) {
+function showSolitaireToast(message, type = 'twist') {
   const toastEl = document.getElementById('toast');
   if (!toastEl) return;
 
   toastEl.textContent = message;
-  toastEl.className = 'toast type-twist show';
+  toastEl.className = `toast type-${type} show`;
   setTimeout(() => {
     if (toastEl.textContent === message) {
       toastEl.classList.remove('show');
