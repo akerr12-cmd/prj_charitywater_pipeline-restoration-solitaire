@@ -31,13 +31,6 @@ html, body {
   overflow-x: hidden;
 }
 
-body.no-select-during-drag,
-body.no-select-during-drag * {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-
 /* ---- Screens ---- */
 .screen {
   display: none;
@@ -1260,30 +1253,6 @@ h1 span { color: var(--yellow); }
   0% { transform: scale(0.96); }
   70% { transform: scale(1.03); }
   100% { transform: scale(1); }
-}
-
-/* When dragging */
-.card.dragging {
-  opacity: 0.8;
-  transform: scale(1.05);
-  z-index: 9999;
-}
-
-.card.dragging .card-inner {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.55);
-  transform: scale(1.06);
-}
-
-.card.dragging.faceup .card-inner,
-.card.dragging.flipped .card-inner,
-.card.dragging.matched .card-inner {
-  transform: rotateY(180deg) scale(1.06);
-}
-
-/* Drop target highlight */
-.drop-target-column {
-  outline: 3px solid var(--yellow);
-  outline-offset: 4px;
 }
 
 .tableau-column.drop-target,

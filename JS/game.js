@@ -4,6 +4,13 @@
 
 'use strict';
 
+/*
+  File role:
+  - Owns shell/UI flow (title, modal, pause, win, impact screens)
+  - Contains legacy card-grid mode helpers
+  - Exposes screen/confetti hooks used by solitaire module
+*/
+
 // =============================================
 // CARD DATA
 // =============================================
@@ -102,6 +109,8 @@ window.showScreen = showScreen;
 let isStartingGame = false;
 
 async function startSelectedMode() {
+  // Preferred runtime path: launch module-based solitaire mode.
+  // Falls back to legacy local mode if module bootstrap fails.
   if (isStartingGame) return;
   isStartingGame = true;
 
@@ -185,6 +194,7 @@ function renderGrid() {
 // =============================================
 
 function initGame() {
+  // Legacy mode initializer (kept for fallback safety).
   state = freshState();
   state.cards = buildDeck();
 
@@ -497,6 +507,7 @@ function onSkip() {
 // =============================================
 
 function triggerWin() {
+  // Legacy-mode win transition + celebration.
   state.gameOver = true;
   clearInterval(state.timerInterval);
   clearTimeout(state.heatwaveTimeout);
@@ -507,21 +518,6 @@ function triggerWin() {
 
   showScreen('win');
   startConfetti();
-}
-
-function gameOver() {
-  state.gameOver = true;
-  clearInterval(state.timerInterval);
-  showToast("⏱️ Time's up! Better luck next time!", 'type-penalty');
-  setTimeout(() => goToImpact(), 2500);
-}
-
-function goToImpact() {
-  clearInterval(state.timerInterval);
-  clearTimeout(state.heatwaveTimeout);
-  state.gameOver = true;
-  populateImpactScreen();
-  showScreen('impact');
 }
 
 function populateImpactScreen() {
@@ -711,6 +707,7 @@ function closeModal(id) {
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Wire all top-level UI controls once DOM is ready.
   // Preload solitaire module so first Start click is immediate.
   import('./solitaire.js').catch(() => {
     // No-op: startSelectedMode has fallback handling.

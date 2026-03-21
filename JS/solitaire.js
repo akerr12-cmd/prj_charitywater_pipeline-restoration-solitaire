@@ -7,6 +7,13 @@ import { FULL_DECK } from './deck.js';
 
 'use strict';
 
+/*
+  File role:
+  - Main solitaire engine (state, rendering, move rules, scoring, progression)
+  - Handles click-to-select/click-to-place input model
+  - Delegates screen transitions/confetti to shell hooks in game.js
+*/
+
 /* ------------------------------------------------------------
    1. GAME CONSTANTS
 ------------------------------------------------------------ */
@@ -626,10 +633,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function handleDropTargetClick(target) {
-  attemptSelectedMoveToTarget(target);
-}
-
 /* ------------------------------------------------------------
    8. MOVE VALIDATION
 ------------------------------------------------------------ */
@@ -1013,6 +1016,8 @@ function getMatchType(a, b) {
 ------------------------------------------------------------ */
 
 function isValidFoundationMove(card, pile, foundationIndex) {
+  // Foundation slots are type-specific by fixed index:
+  // 0=Tools, 1=Solutions, 2=Challenges Cleared (auto-filled), 3=Impact.
   const type = getCardType(card);
 
   // Foundation 0: Tools
@@ -1046,6 +1051,8 @@ function isValidFoundationMove(card, pile, foundationIndex) {
 }
 
 function isValidTableauMove(card, column) {
+  // Tableau rule set encodes the pipeline logic sequence.
+  // If a rule pair is not explicitly allowed below, placement is rejected.
   const type = getCardType(card);
 
   // Empty column: allow any face-up card
@@ -1154,6 +1161,8 @@ function revealNextCardInOrigin() {
 ------------------------------------------------------------ */
 
 function updateProgress(delta) {
+  // Progress is a blend of direct move rewards and a foundation-based baseline.
+  // This keeps UI progress aligned with both tactical play and long-term completion.
   if (typeof delta === 'number' && delta !== 0) {
     S.progress = Math.min(100, Math.max(0, S.progress + delta));
   }
@@ -1170,6 +1179,7 @@ function updateProgress(delta) {
   awardProgressBoosters();
 
   updateHUD();
+  // Current win gate: progress bar reaches 100%.
   if (S.progress >= 100) triggerWin();
 }
 
