@@ -973,6 +973,17 @@ function bindTempScreenHud() {
       showScreen(target);
     });
   });
+
+  // Minimize button for screen jump HUD
+  $('screen-hud-toggle-btn')?.addEventListener('click', () => {
+    const hud = $('temp-screen-hud');
+    if (!hud) return;
+
+    hud.classList.toggle('is-collapsed');
+    const collapsed = hud.classList.contains('is-collapsed');
+    const btn = $('screen-hud-toggle-btn');
+    if (btn) btn.textContent = collapsed ? '+' : '−';
+  });
 }
 
 // =============================================

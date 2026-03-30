@@ -481,7 +481,10 @@
       Comment out this block when no longer needed.
     -->
     <aside id="temp-screen-hud" class="temp-screen-hud" aria-label="Temporary screen navigation HUD">
-        <div class="temp-screen-hud-head">Screen Jump</div>
+        <div class="temp-screen-hud-head">
+            <span>Screen Jump</span>
+            <button id="screen-hud-toggle-btn" class="screen-hud-toggle-btn" type="button" aria-label="Minimize screen jump HUD">−</button>
+        </div>
         <div class="temp-screen-hud-actions">
             <button class="temp-screen-btn" type="button" data-screen-jump="title">Title</button>
             <button class="temp-screen-btn" type="button" data-screen-jump="game">Game</button>
