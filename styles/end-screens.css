@@ -45,7 +45,10 @@
 }
 
 .win-icon {
-  font-size: 4rem;
+  width: min(22vw, 120px);
+  height: auto;
+  display: block;
+  margin-inline: auto;
   margin-bottom: 16px;
   animation: floatBounce 2s ease-in-out infinite;
 }
@@ -65,6 +68,54 @@
 }
 
 .win-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.win-story-card {
+  margin: 16px auto 0;
+  width: min(100%, 500px);
+  text-align: left;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(8, 40, 54, 0.58);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+}
+
+.win-story-card h3 {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--yellow);
+  margin-bottom: 8px;
+}
+
+.win-story-card p {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.win-story-source {
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.win-story-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  color: var(--yellow);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 201, 7, 0.45);
+}
+
+.win-story-link:hover {
+  color: #ffe06b;
+  border-bottom-color: #ffe06b;
+}
 
 .water-splash {
   position: absolute;
@@ -280,7 +331,7 @@
   }
 
   .win-icon {
-    font-size: 2.8rem;
+    width: min(30vw, 96px);
     margin-bottom: 10px;
   }
 
@@ -293,6 +344,16 @@
   .win-buttons .btn,
   .impact-buttons .btn {
     width: 100%;
+  }
+
+  .win-story-card {
+    margin-top: 12px;
+    padding: 10px;
+  }
+
+  .win-story-card p {
+    font-size: 0.78rem;
+    line-height: 1.45;
   }
 
   .impact-subhead {
