@@ -97,6 +97,59 @@ const screens = {
 const gameAudio = createAudioManager();
 window.gameAudio = gameAudio;
 
+const WIN_STORIES = [
+  {
+    title: "Every Father's Dream",
+    teaser: 'Clean water brought a father in Madagascar more time with his daughters, showing how access to water transforms daily family life.',
+    url: 'https://www.charitywater.org/stories/every-fathers-dream',
+  },
+  {
+    title: 'Advancing education with clean water in Bangladesh',
+    teaser: 'A long-awaited water system in southern Bangladesh improved health and gave students more time to focus on school.',
+    url: 'https://www.charitywater.org/stories/advancing-education-with-clean-water-in-bangladesh',
+  },
+  {
+    title: 'A House Reunited',
+    teaser: 'After years of dirty-water hardship in Sierra Leone, one family regained health, time, and stability with nearby clean water.',
+    url: 'https://www.charitywater.org/stories/a-house-reunited',
+  },
+  {
+    title: 'The Shared Work of Water',
+    teaser: 'In Kenema District, Sierra Leone, communities show that keeping clean water flowing is a team effort across neighbors and families.',
+    url: 'https://www.charitywater.org/stories/the-shared-work-of-water',
+  },
+];
+
+let lastWinStoryIndex = -1;
+
+function pickNextWinStoryIndex() {
+  if (WIN_STORIES.length <= 1) return 0;
+
+  let next = Math.floor(Math.random() * WIN_STORIES.length);
+  while (next === lastWinStoryIndex) {
+    next = Math.floor(Math.random() * WIN_STORIES.length);
+  }
+  return next;
+}
+
+function renderWinStory() {
+  const titleEl = $('win-story-title');
+  const textEl = $('win-story-text');
+  const sourceEl = $('win-story-source');
+  const linkEl = $('win-story-link');
+  if (!titleEl || !textEl || !sourceEl || !linkEl || !WIN_STORIES.length) return;
+
+  const nextIndex = pickNextWinStoryIndex();
+  lastWinStoryIndex = nextIndex;
+  const story = WIN_STORIES[nextIndex];
+
+  titleEl.textContent = story.title;
+  textEl.textContent = `Featured story: "${story.title}". ${story.teaser}`;
+  sourceEl.textContent = 'Source: charity: water Stories';
+  linkEl.href = story.url;
+  linkEl.textContent = `Read "${story.title}"`;
+}
+
 // =============================================
 // SCREEN MANAGEMENT
 // =============================================
@@ -104,6 +157,10 @@ window.gameAudio = gameAudio;
 function showScreen(name) {
   Object.values(screens).forEach(s => s.classList.remove('active'));
   if (screens[name]) screens[name].classList.add('active');
+
+  if (name === 'win') {
+    renderWinStory();
+  }
 
   if (name !== 'game' && $('pause-overlay')) {
     state.isPaused = false;
