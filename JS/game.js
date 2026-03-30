@@ -1386,7 +1386,11 @@ function checkOrientation() {
 }
 
 function initOrientationLock() {
-  if (screen.orientation && screen.orientation.lock) {
+  // Only lock landscape on tablet and smaller screens (< 1024px width)
+  // Desktop screens should not be forced to landscape
+  const isDesktop = window.innerWidth >= 1024;
+  
+  if (!isDesktop && screen.orientation && screen.orientation.lock) {
     screen.orientation.lock('landscape').catch(() => {
       // Silently fail if lock is not supported.
     });
